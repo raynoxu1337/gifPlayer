@@ -14,8 +14,9 @@
 //https://arduinojson.org/
 #include <ArduinoJson.h>
 
-
-// Haram, should move to read from SD card
+/*
+TODO: should add multiple SSID's to connect to
+*/
 char ssid[32] = "";
 char password[32] = "";
 
@@ -37,7 +38,6 @@ AnimatedGIF gif;
 int nfiles = 0;
 
 // State
-//bool backlightOn = true;
 const int minBrightness = 0;
 const int maxBrightness = 100;
 int brightness = 90;
@@ -61,7 +61,8 @@ void setup() {
     Serial.println("Error: Unable to initialize SD card!");
     tft.fillScreen(TFT_RED);
     tft.drawString("SD Error", 10, 10);
-    tft.drawString("If SD is inside then restart device", 20, 10);
+    tft.drawString("If SD is inside then restart device", 10, 20);
+    // Theres no real functionality possible if theres no wifi
     while (1)
       ;
   }
@@ -86,7 +87,7 @@ void setup() {
   //  Serial.println("Failed to obtain time");
   //  return;
   //}
-  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+  //Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
 
   //deleteFile(SD, "/downloaded.gif");
   //downloadHTTPS("https://raynoxu.neocities.org/notilt.gif", "/downloaded.gif");
@@ -98,6 +99,7 @@ void setup() {
 void loop() {
 
   uint16_t nthFile = nfiles + 1;
+  time_t fetchUpdateTimer = millis();
   while (nthFile > 1) {
     nthFile--;
 
@@ -108,7 +110,6 @@ void loop() {
     Serial.printf("Idx %u, fn %s \n", nthFile, fileName);
 
     time_t tick = millis();
-    time_t fetchUpdateTimer = millis();
     while (millis() - tick < 10000) {
       nthFrame = 0;
       gif.setDrawType(GIF_DRAW_COOKED);
@@ -117,24 +118,16 @@ void loop() {
         while (gif.playFrame(true, NULL)) {
           nthFrame++;
           yield();
-          // works kenough
-          //tft.drawString(String(nthFrame), 0, 232);
-          if (downloadedString.length() > 0) {
-            tft.drawString(downloadedString, 0, 310);
-          }
         }
         gif.close();
         tft.endWrite();
       }
     }
     if (nthFile == 1) { nthFile = nfiles + 1; }
-    // Feth updates once a minute
-    if (milis() - fetchUpdateTimer < 60000) {
-      if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("Wifi gucci");
-        HTTPSreadString("https://raynoxu.neocities.org/esp32-test.txt", downloadedString);
-        // no point to use without https
-      }
+    // Fetch updates once a minute
+    if (millis() - fetchUpdateTimer > 60000) {
+      fetchUpdates();
+      fetchUpdateTimer = millis();
     }
   }
 }

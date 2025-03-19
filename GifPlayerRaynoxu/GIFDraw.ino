@@ -92,7 +92,7 @@ void GIFDraw(GIFDRAW *pDraw) {
       for (iCount = 0; iCount < iWidth; iCount++) usTemp[dmaBuf][iCount] = usPalette[*s++];
     else
       for (iCount = 0; iCount < BUFFER_SIZE; iCount++) usTemp[dmaBuf][iCount] = usPalette[*s++];
-    if (nthFrame !=0) {
+    if (nthFrame != 0) {
 #ifdef USE_DMA  // 71.6 fps (ST7796 84.5 fps)
       tft.dmaWait();
       tft.setAddrWindow(pDraw->iX, y, iWidth, 1);
@@ -115,7 +115,7 @@ void GIFDraw(GIFDRAW *pDraw) {
         for (iCount = 0; iCount < iWidth; iCount++) usTemp[dmaBuf][iCount] = usPalette[*s++];
       else
         for (iCount = 0; iCount < BUFFER_SIZE; iCount++) usTemp[dmaBuf][iCount] = usPalette[*s++];
-      if (nthFrame !=0) {
+      if (nthFrame != 0) {
 #ifdef USE_DMA
         tft.dmaWait();
         tft.pushPixelsDMA(&usTemp[dmaBuf][0], iCount);
@@ -131,4 +131,4 @@ void GIFDraw(GIFDRAW *pDraw) {
     }
   }
 }
- /* GIFDraw() */
+/* GIFDraw() */

@@ -11,13 +11,17 @@
 #include <Arduino.h>
 #include "time.h"
 
+//https://arduinojson.org/
+#include <ArduinoJson.h>
+
+
 // Haram, should move to read from SD card
 char ssid[32] = "";
 char password[32] = "";
 
 const char* ntpServer = "pool.ntp.org";
-const long  gmtOffset_sec = 0;
-const int   daylightOffset_sec = 3600;
+const long gmtOffset_sec = 0;
+const int daylightOffset_sec = 3600;
 
 static int nthFrame = 0;
 
@@ -39,6 +43,7 @@ const int maxBrightness = 100;
 int brightness = 90;
 String downloadedString = "";
 bool SDerror = false;
+struct tm timeinfo;
 
 
 /**************************************SETUP****************************************/
@@ -63,26 +68,29 @@ void setup() {
   Serial.println("SD card initialized successfully.");
 
   readFileConf(SD, "/conf/wifi.txt");
-  
+
   // Since we have Wifi credentials now we can connect to wifi
   WiFi.mode(WIFI_STA);
   beginWifiSTR(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-   Serial.print('.');
-   delay(1000);
-  }
+  // Debug Wifi
+  //while (WiFi.status() != WL_CONNECTED) {
+  // Serial.print('.');
+  // delay(1000);
+  //}
+
+
   // could get time like this
   // configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  // struct tm timeinfo;
-  // if(!getLocalTime(&timeinfo)){
-  //   Serial.println("Failed to obtain time");
-  //   return;
-  // }
-  // Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
-  // Soo we have wifi, try to download some stuff
-  deleteFile(SD, "/downloaded.gif");
-  downloadHTTPS("https://raynoxu.neocities.org/notilt.gif", "/downloaded.gif");
-  
+
+  //if(!getLocalTime(&timeinfo)){
+  //  Serial.println("Failed to obtain time");
+  //  return;
+  //}
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+
+  //deleteFile(SD, "/downloaded.gif");
+  //downloadHTTPS("https://raynoxu.neocities.org/notilt.gif", "/downloaded.gif");
+
   nfiles = countDir(SD, "/", 0);
   gif.begin(GIF_PALETTE_RGB565_BE);
 }
@@ -99,8 +107,8 @@ void loop() {
     strlcat(fileName, fileNameOld, 32);
     Serial.printf("Idx %u, fn %s \n", nthFile, fileName);
 
-
     time_t tick = millis();
+    time_t fetchUpdateTimer = millis();
     while (millis() - tick < 10000) {
       nthFrame = 0;
       gif.setDrawType(GIF_DRAW_COOKED);
@@ -120,12 +128,14 @@ void loop() {
       }
     }
     if (nthFile == 1) { nthFile = nfiles + 1; }
-    if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("Wifi gucci");
-      HTTPSreadString("https://raynoxu.neocities.org/esp32-test.txt", downloadedString);
-      // no point to use without https
+    // Feth updates once a minute
+    if (milis() - fetchUpdateTimer < 60000) {
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("Wifi gucci");
+        HTTPSreadString("https://raynoxu.neocities.org/esp32-test.txt", downloadedString);
+        // no point to use without https
+      }
     }
   }
 }
 /******************************************************************************/
-

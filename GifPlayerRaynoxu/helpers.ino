@@ -237,7 +237,7 @@ void downloadHTTPS(const String url, const String path) {
           // write it to Serial
           //Serial.write(buff, c);
           file.write(buff, c);
-          tft.drawString(String((float(lenFull)-float(len))/float(lenFull)*100)+"%", 0, 24);
+          tft.drawString(String((float(lenFull) - float(len)) / float(lenFull) * 100) + "%", 0, 24);
           if (len > 0) {
             len -= c;
           }
@@ -247,11 +247,10 @@ void downloadHTTPS(const String url, const String path) {
 
       Serial.println();
       Serial.print("[HTTP] connection closed or file end.\n");
-    file.close();
-    }  
-}
-else {
-  Serial.printf("[HTTP] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
-}
-https.end();
+      file.close();
+    }
+  } else {
+    Serial.printf("[HTTP] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
+  }
+  https.end();
 }
